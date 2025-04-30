@@ -17,17 +17,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/batch")
 public class BatchController {
     private final JobLauncher jobLauncher;
-    private final Job job;
+    private final Job nonPaginatedJob;
+    private final Job paginatedJob;
 
-    @GetMapping
+    @GetMapping("/non-paginated")
     public ResponseEntity<String> triggerJob() {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("jobId", String.valueOf(System.currentTimeMillis()))
                 .toJobParameters();
 
         try {
-            JobExecution execution = jobLauncher.run(job, jobParameters);
-            return ResponseEntity.ok("Job started with ID: " + execution.getId());
+            JobExecution execution = jobLauncher.run(nonPaginatedJob, jobParameters);
+            return ResponseEntity.ok("Non Paginated Job started with ID: " + execution.getId());
+        } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
+                 JobParametersInvalidException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error starting job: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<String> paginatedJob() {
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("jobId", String.valueOf(System.currentTimeMillis()))
+                .toJobParameters();
+
+        try {
+            JobExecution execution = jobLauncher.run(paginatedJob, jobParameters);
+            return ResponseEntity.ok("Paginated Job started with ID: " + execution.getId());
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
                  JobParametersInvalidException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

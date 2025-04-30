@@ -22,7 +22,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
-public class BatchConfig {
+public class PaginatedBatchConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -30,25 +30,25 @@ public class BatchConfig {
     private final DataSource dataSource;
 
     @Bean
-    public ItemReader<Comments> nonPaginatedApiItemReader(ApiClient apiClient) {
-        return new NonPaginatedApiItemReader<>(apiClient::fetchAllRecords);
+    public ItemReader<Comments> paginatedItemReader() {
+        return new PaginatedApiItemReader<Comments>(apiClient, 50, Comments.class);
     }
 
     @Bean
-    public ItemProcessor<Comments, Comments> processor() {
-        return dto -> {
-            Comments entity = new Comments();
-            entity.setId(dto.getId());
-            entity.setPostId(dto.getPostId());
-            entity.setEmail(dto.getEmail());
-            entity.setBody(dto.getBody());
-            entity.setName("TEST-" + dto.getName());
-            return entity;
+    public ItemProcessor<Comments, Comments> paginatedItemProcessor() {
+        return item -> {
+            Comments newItem = new Comments();
+            newItem.setId(item.getId());
+            newItem.setPostId(item.getPostId());
+            newItem.setBody(item.getBody());
+            newItem.setName("TESTX-" + item.getName());
+            newItem.setEmail(item.getEmail());
+            return newItem;
         };
     }
 
     @Bean
-    public JdbcBatchItemWriter<Comments> jdbcBatchItemWriter(DataSource dataSource) {
+    public JdbcBatchItemWriter<Comments> paginatedJdbcBatchItemWriter(DataSource dataSource) {
         return new JdbcBatchItemWriterBuilder<Comments>()
                 .dataSource(dataSource)
                 .sql("""
@@ -60,21 +60,22 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step nonPaginatedApiStep() {
-        return new StepBuilder("nonPaginatedApiStep", jobRepository)
-                .<Comments, Comments>chunk(5, transactionManager)
-                .reader(nonPaginatedApiItemReader(apiClient))
-                .processor(processor())
-                .writer(jdbcBatchItemWriter(dataSource))
+    public Step paginatedStep() {
+        return new StepBuilder("paginatedStep", jobRepository)
+                .<Comments, Comments>chunk(50, transactionManager)
+                .reader(paginatedItemReader())
+                .processor(paginatedItemProcessor())
+                .writer(paginatedJdbcBatchItemWriter(dataSource))
                 .listener(new LoggingChunkListener())
                 .build();
     }
 
     @Bean
-    public Job chunkedJob() {
-        return new JobBuilder("chunkedJob", jobRepository)
+    public Job paginatedJob() {
+        return new JobBuilder("paginatedJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
-                .start(nonPaginatedApiStep())
+                .start(paginatedStep())
                 .build();
     }
+
 }
