@@ -1,4 +1,4 @@
-package com.nayak.ecommerce.springbatchapipaginatedprocessing.model;
+package com.nayak.batch.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

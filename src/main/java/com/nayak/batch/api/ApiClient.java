@@ -1,6 +1,6 @@
-package com.nayak.ecommerce.springbatchapipaginatedprocessing.api;
+package com.nayak.batch.api;
 
-import com.nayak.ecommerce.springbatchapipaginatedprocessing.model.Comments;
+import com.nayak.batch.model.Comments;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;

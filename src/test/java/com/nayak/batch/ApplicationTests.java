@@ -1,10 +1,10 @@
-package com.nayak.ecommerce.springbatchapipaginatedprocessing;
+package com.nayak.batch;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringBatchApiPaginatedProcessingApplicationTests {
+class ApplicationTests {
 
     @Test
     void contextLoads() {
